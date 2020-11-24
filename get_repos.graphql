@@ -1,0 +1,25 @@
+query ($org: String!, $cursor: String) {
+  organization(login: $org) {
+    repositories(first: 100) {
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+      nodes {
+        name
+        repositoryTopics(first: 100) {
+          nodes {
+            topic {
+              name
+            }
+          }
+        }
+        object(expression: "master:Gemfile") {
+          ... on Blob {
+            text
+          }
+        }
+      }
+    }
+  }
+}

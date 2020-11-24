@@ -7,12 +7,37 @@ import os
 import json
 
 
-def run_query(query, headers):
-    request = requests.post('https://api.github.com/graphql', json={'query': query}, headers=headers)
+def run_query(query, header_auth):
+    request = requests.post('https://api.github.com/graphql', json={'query': query}, headers=header_auth)
     if request.status_code == 200:
         return request.json()
     else:
         raise Exception("Query failed to run by returning code of {}. {}".format(request.status_code, query))
+
+
+def get_repos(org, header_auth):
+    with open('get_repos.graphql', 'r') as file:
+        data = file.read().replace('\n', '')
+        #print(data)
+
+    q_vars = {'org': 'clearmatics', 'cursor': 'ASDASDASD='}
+    query = data + json.dumps(q_vars)
+
+    print(query)
+
+    result = run_query(query, header_auth)
+    print(json.dumps(result))
+
+    
+    sys.exit(0)
+
+    repos = {}
+    for repo in result["data"]["search"]["edges"]:
+        branches = []
+        for branch in repo["node"]["refs"]["edges"]:
+            branches.append(branch["node"]["name"])
+        repos |= {repo["node"]["nameWithOwner"]: branches}
+    return repos
 
 
 def main():
@@ -44,30 +69,9 @@ def main():
         print("export GITHUB_PAT=")
         sys.exit(1)
 
-    query = """
-    {
-      search(query: "org:""" + args.org + """", type: REPOSITORY, first: 3) {
-        repositoryCount
-        edges {
-          node {
-            ... on Repository {
-              nameWithOwner,
-              refs(first: 100, refPrefix: "refs/heads/") {
-                edges{
-                  node {
-                    name
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    """
-
-    result = run_query(query, {"Authorization": "Bearer " + github_token})
-    print(json.dumps(result["data"]["search"], sort_keys=True, indent=2))
+    header_auth = {"Authorization": "Bearer " + github_token}
+    repos = get_repos(args.org, header_auth)
+    print(json.dumps(repos))
 
 
 if __name__ == '__main__':
