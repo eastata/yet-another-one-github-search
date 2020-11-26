@@ -7,8 +7,8 @@ import os
 import json
 
 
-def run_query(query, header_auth):
-    request = requests.post('https://api.github.com/graphql', json={'query': query}, headers=header_auth)
+def run_query(query, header_auth, q_vars):
+    request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables': q_vars }, headers=header_auth)
     if request.status_code == 200:
         return request.json()
     else:
@@ -17,20 +17,10 @@ def run_query(query, header_auth):
 
 def get_repos(org, header_auth):
     with open('get_repos.graphql', 'r') as file:
-        data = file.read().replace('\n', '')
-        #print(data)
+        query = file.read().replace('\n', '')
 
-    q_vars = {'org': 'clearmatics', 'cursor': 'ASDASDASD='}
-    query = data + json.dumps(q_vars)
-
-    print(query)
-
-    result = run_query(query, header_auth)
-    print(json.dumps(result))
-
-    
-    sys.exit(0)
-
+    q_vars = {"q": "org:" + org}
+    result = run_query(query, header_auth, q_vars)
     repos = {}
     for repo in result["data"]["search"]["edges"]:
         branches = []
