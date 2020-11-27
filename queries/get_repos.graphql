@@ -1,0 +1,17 @@
+query ($q: String!) {
+  organization (login: $q) {
+    repositories (first: 3) {
+      edges {
+        node {
+          name
+          nameWithOwner
+        }
+        cursor
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+    }
+  }
+}
