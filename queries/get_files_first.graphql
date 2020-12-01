@@ -1,0 +1,17 @@
+query ($owner: String!, $repo: String!, $expression: String!) {
+  repository(owner: $owner, name: $repo) {
+       filename: object(expression: $expression) {
+      ... on Tree {
+        entries {
+          path
+          object {
+            ... on Blob {
+              text
+              isBinary
+            }
+          }
+        }
+      }
+    }
+  }
+}

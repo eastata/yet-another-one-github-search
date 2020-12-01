@@ -57,27 +57,17 @@ def get_branches(org, header_auth, repo):
     return branches
 
 
-def get_files(org, header_auth, repo, branch, search_dir, search_pattern):
-    """
-    query {
-      repository(owner: "eastata", name: "charts-ose") {
-           filename: object(expression: "master:.github/") {
-          ... on Tree {
-            entries {
-              path
-              object {
-                ... on Blob {
-                  text
-                  isBinary
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    """
-    pass
+def get_files(org, header_auth, repo, branch, search_dir):
+    q_vars = {"owner": org, "repo": repo, "expression": branch + ":" + search_dir}
+    result = run_query('get_files_first.graphql', header_auth, q_vars)
+    print(json.dumps(result))
+    files = []
+    for file in result["data"]["repository"]["filename"]["entries"]:
+        if not bool(file["object"]["isBinary"]):
+            files.append({"path": file["path"],
+                          "text": file["object"]["text"]
+                          })
+    return files
 
 
 def main():
@@ -111,10 +101,10 @@ def main():
 
     header_auth = {"Authorization": "Bearer " + github_token}
     #repos = get_repos(args.org, header_auth)
-    branches = get_branches(args.org, header_auth, "autonity")
+    #branches = get_branches(args.org, header_auth, "autonity")
+    files = get_files(args.org, header_auth, "autonity", "master", args.dir)
 
-
-    print(json.dumps(branches))
+    print(json.dumps(files))
 
 
 if __name__ == '__main__':
