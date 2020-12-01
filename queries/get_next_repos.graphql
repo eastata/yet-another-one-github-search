@@ -1,0 +1,15 @@
+query ($q: String!, $cursor: String!) {
+  organization (login: $q) {
+    repositories (first: 100, after: $cursor) {
+      edges {
+        node {
+          name
+        }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+    }
+  }
+}
