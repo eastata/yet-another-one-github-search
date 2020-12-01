@@ -5,6 +5,7 @@ import sys
 import requests
 import os
 import json
+import re
 
 
 def run_query(query_name, header_auth, q_vars):
@@ -60,14 +61,23 @@ def get_branches(org, header_auth, repo):
 def get_files(org, header_auth, repo, branch, search_dir):
     q_vars = {"owner": org, "repo": repo, "expression": branch + ":" + search_dir}
     result = run_query('get_files_first.graphql', header_auth, q_vars)
-    print(json.dumps(result))
     files = []
-    for file in result["data"]["repository"]["filename"]["entries"]:
-        if not bool(file["object"]["isBinary"]):
-            files.append({"path": file["path"],
-                          "text": file["object"]["text"]
-                          })
+    if result["data"]["repository"]["filename"]:
+        for file in result["data"]["repository"]["filename"]["entries"]:
+            if not bool(file["object"]["isBinary"]):
+                files.append({"path": file["path"],
+                              "text": file["object"]["text"]
+                              })
     return files
+
+
+def parse_files(files, pattern):
+    matches = []
+    for file in files:
+        match = re.search(pattern, file["text"])
+        if match:
+            matches.append(file["path"])
+    return matches
 
 
 def main():
@@ -86,7 +96,7 @@ def main():
                         )
     parser.add_argument('--pattern',
                         dest='pattern',
-                        default="set-env",
+                        default="set-env|add-path",
                         type=str,
                         help='Search pattern (default: %(default)s)'
                         )
@@ -100,11 +110,14 @@ def main():
         sys.exit(1)
 
     header_auth = {"Authorization": "Bearer " + github_token}
-    #repos = get_repos(args.org, header_auth)
-    #branches = get_branches(args.org, header_auth, "autonity")
-    files = get_files(args.org, header_auth, "autonity", "master", args.dir)
-
-    print(json.dumps(files))
+    repos = get_repos(args.org, header_auth)
+    for repo in repos:
+        branches = get_branches(args.org, header_auth, repo)
+        for branch in branches:
+            files = get_files(args.org, header_auth, repo, branch, args.dir)
+            if files:
+                matches = parse_files(files, args.pattern)
+                print(f'git@github.com:{args.org}/{repo}.git -b {branch} \nFiles: {matches}')
 
 
 if __name__ == '__main__':
