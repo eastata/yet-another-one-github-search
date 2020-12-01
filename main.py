@@ -28,23 +28,17 @@ def get_repos(org, header_auth):
     https://docs.github.com/en/free-pro-team@latest/graphql/overview/resource-limitations#node-limit
     If number of repos over 100 we must use pagination https://graphql.org/learn/pagination/
     """
-    q_vars = {"q": "org:" + org}
+    q_vars = {"q": org}
     result = run_query('get_first_repos.graphql', header_auth, q_vars)
-    repos = {}
-    for repo in result["data"]["search"]["edges"]:
-        branches = []
-        for branch in repo["node"]["refs"]["edges"]:
-            branches.append(branch["node"]["name"])
-        repos |= {repo["node"]["name"]: branches}
-    while bool(result["data"]["search"]["pageInfo"]["hasNextPage"]):
-        cursor = result["data"]["search"]["pageInfo"]["endCursor"]
-        q_vars = {"q": "org:" + org, "cursor": cursor}
+    repos = []
+    for repo in result["data"]["organization"]["repositories"]["edges"]:
+        repos.append(repo["node"]["name"])
+    while bool(result["data"]["organization"]["repositories"]["pageInfo"]["hasNextPage"]):
+        cursor = result["data"]["organization"]["repositories"]["pageInfo"]["endCursor"]
+        q_vars = {"q": org, "cursor": cursor}
         result = run_query('get_next_repos.graphql', header_auth, q_vars)
-        for repo in result["data"]["search"]["edges"]:
-            branches = []
-            for branch in repo["node"]["refs"]["edges"]:
-                branches.append(branch["node"]["name"])
-            repos |= {repo["node"]["name"]: branches}
+        for repo in result["data"]["organization"]["repositories"]["edges"]:
+            repos.append(repo["node"]["name"])
     return repos
 
 
@@ -61,23 +55,15 @@ def get_file_list(org, header_auth, repo, branch, search_dir):
 def parse_file(org, header_auth, repo, branch, filename, search_pattern):
     """
     query {
-      repository(owner: "eastata", name: "charts-ose") {
-           filename: object(expression: "master:.github/") {
-          ... on Tree {
-            entries {
-              path
-              object {
-                ... on Blob {
-                  text
-                  isBinary
-                }
-              }
-            }
+      repository(owner: "eastata", name: "zos-cli") {
+        content:object(expression: "master:README.md") {
+          ... on Blob {
+            text
+            isBinary
           }
         }
       }
     }
-
     """
 
     # Get test blob for file

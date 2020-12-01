@@ -1,23 +1,15 @@
 query ($q: String!) {
-  search(query: $q, type: REPOSITORY, first: 100) {
-    repositoryCount
+  organization (login: $q) {
+    repositories (first: 100) {
       edges {
         node {
-          ... on Repository {
-            name,
-            refs(first: 100, refPrefix: "refs/heads/") {
-              edges{
-                node {
-                  name
-                }
-              }
-            }
-          }
+          name
         }
-	  }
-	  pageInfo {
+      }
+      pageInfo {
         endCursor
         hasNextPage
       }
+    }
   }
 }
