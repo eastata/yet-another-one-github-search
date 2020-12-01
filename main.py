@@ -116,7 +116,8 @@ def main():
             files = get_files(args.org, header_auth, repo, branch, args.dir)
             if files:
                 matches = parse_files(files, args.pattern)
-                print(f'git@github.com:{args.org}/{repo}.git -b {branch} \nFiles: {matches}')
+                if matches:
+                    print(f'git@github.com:{args.org}/{repo}.git -b {branch} \nFiles: {matches}')
 
 
 if __name__ == '__main__':
