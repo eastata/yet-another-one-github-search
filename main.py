@@ -29,48 +29,54 @@ def get_repos(org, header_auth):
     If number of repos over 100 we must use pagination https://graphql.org/learn/pagination/
     """
     q_vars = {"q": org}
-    result = run_query('get_first_repos.graphql', header_auth, q_vars)
+    result = run_query('get_repos_first.graphql', header_auth, q_vars)
     repos = []
     for repo in result["data"]["organization"]["repositories"]["edges"]:
         repos.append(repo["node"]["name"])
     while bool(result["data"]["organization"]["repositories"]["pageInfo"]["hasNextPage"]):
         cursor = result["data"]["organization"]["repositories"]["pageInfo"]["endCursor"]
         q_vars = {"q": org, "cursor": cursor}
-        result = run_query('get_next_repos.graphql', header_auth, q_vars)
+        result = run_query('get_repos_next.graphql', header_auth, q_vars)
         for repo in result["data"]["organization"]["repositories"]["edges"]:
             repos.append(repo["node"]["name"])
     return repos
 
 
 def get_branches(org, header_auth, repo):
-    branches = ["branch1", "branch2"]
+    q_vars = {"owner": org, "repo": repo}
+    result = run_query('get_branches_first.graphql', header_auth, q_vars)
+    branches = []
+    for branch in result["data"]["repository"]["refs"]["edges"]:
+        branches.append(branch["node"]["name"])
+    while bool(result["data"]["repository"]["refs"]["pageInfo"]["hasNextPage"]):
+        cursor = result["data"]["repository"]["refs"]["pageInfo"]["endCursor"]
+        q_vars = {"owner": org, "repo": repo, "cursor": cursor}
+        result = run_query('get_branches_next.graphql', header_auth, q_vars)
+        for branch in result["data"]["repository"]["refs"]["edges"]:
+            branches.append(branch["node"]["name"])
     return branches
 
 
-def get_file_list(org, header_auth, repo, branch, search_dir):
-    file_list = ["./ololo/zz.md", "./ololo/zz2.md"]
-    return file_list
-
-
-def parse_file(org, header_auth, repo, branch, filename, search_pattern):
+def get_files(org, header_auth, repo, branch, search_dir, search_pattern):
     """
     query {
-      repository(owner: "eastata", name: "zos-cli") {
-        content:object(expression: "master:README.md") {
-          ... on Blob {
-            text
-            isBinary
+      repository(owner: "eastata", name: "charts-ose") {
+           filename: object(expression: "master:.github/") {
+          ... on Tree {
+            entries {
+              path
+              object {
+                ... on Blob {
+                  text
+                  isBinary
+                }
+              }
+            }
           }
         }
       }
     }
     """
-
-    # Get test blob for file
-    # execute search
-    # Return:
-    # * True if found
-    # * False if not fund
     pass
 
 
@@ -104,8 +110,11 @@ def main():
         sys.exit(1)
 
     header_auth = {"Authorization": "Bearer " + github_token}
-    repos = get_repos(args.org, header_auth)
-    print(json.dumps(repos))
+    #repos = get_repos(args.org, header_auth)
+    branches = get_branches(args.org, header_auth, "autonity")
+
+
+    print(json.dumps(branches))
 
 
 if __name__ == '__main__':
