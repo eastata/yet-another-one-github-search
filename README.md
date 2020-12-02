@@ -9,8 +9,8 @@ export GITHUB_PAT=%GITHUB PERSONAL ACCESS TOKEN%
 
 docker run --rm --env GITHUB_PAT eastata/yet-another-one-github-search \
     --org "clearmatics"\
-    --dir ".github/workflows" \
-    --pattern "set-env"
+    --dir ".github/workflows/" \
+    --pattern "set-env|add-path"
 ```
 
 ## CLI options
@@ -18,12 +18,15 @@ docker run --rm --env GITHUB_PAT eastata/yet-another-one-github-search \
 ```
 optional arguments:
   -h, --help         show this help message and exit
-  --dir DIR          Dir for search (default: ./)
+  --dir DIR          Dir for search (default: .github/workflows/)
   --org ORG          GitHub organisation (default: clearmatics)
-  --pattern PATTERN  Search pattern (default: set-env)
+  --pattern PATTERN  Search pattern (default: set-env|add-path)
 ```
 
 ## Build
 ```
 docker build -t eastata/yet-another-one-github-search:latest .
 ```
+
+## Links
+* [GitHub's GraphQL Explorer ](https://developer.github.com/v4/explorer/)
