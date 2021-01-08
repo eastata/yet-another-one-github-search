@@ -10,5 +10,7 @@ RUN pip install -r ./requirements.txt
 COPY ./queries ./queries
 COPY ./main.py .
 
+RUN echo "Test"
+
 ENTRYPOINT ["/env/main.py"]
 CMD []
