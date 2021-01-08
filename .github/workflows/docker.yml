@@ -11,21 +11,23 @@ jobs:
     runs-on: ubuntu-20.04
     timeout-minutes: 10
     steps:
-      -
-        name: Checkout
+      - name: "Checkout"
         uses: actions/checkout@v2
-      -
-        name: Set up Docker Buildx
+
+      - name: "Configure Docker"
+        run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
+      - name: "Set up Docker Buildx"
         id: buildx
         uses: crazy-max/ghaction-docker-buildx@v3
         with:
           buildx-version: latest
           qemu-version: latest
-      -
-        name: Available platforms
+
+      - name: "Buildx available platforms"
         run: echo ${{ steps.buildx.outputs.platforms }}
-      -
-        name: Run Buildx
+
+      - name: "Run Buildx"
         run: |
           docker buildx build \
             --tag ghcr.io/eastata/yet-another-one-github-search:latest \
