@@ -17,13 +17,6 @@ jobs:
       - name: "Configure Docker"
         run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-#      - name: "Docker pull cache"
-#        run: docker pull ghcr.io/github/octoshift:latest
-#      - name: "Docker build"
-#        run: docker build . --tag ghcr.io/github/octoshift:$GITHUB_SHA --cache-from ghcr.io/github/octoshift:latest
-#      - name: "Docker push"
-#        run: docker push ghcr.io/github/octoshift:$GITHUB_SHA
-
       - name: "Set up Docker Buildx"
         id: buildx
         uses: crazy-max/ghaction-docker-buildx@v3
