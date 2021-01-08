@@ -38,7 +38,8 @@ jobs:
         run: |
           docker buildx build \
             --tag ghcr.io/eastata/yet-another-one-github-search:latest \
-            --cache-from ghcr.io/eastata/yet-another-one-github-search:latest
+            --cache-from=type=registry,ref=ghcr.io/eastata/yet-another-one-github-search:cache \
+            --cache-to=type=registry,ref=ghcr.io/eastata/yet-another-one-github-search:cache \
             --platform linux/amd64 \
             --output "type=image,push=true" \
             --file ./Dockerfile ./
